@@ -53,6 +53,7 @@ set(INSTALL_HEADER_FILES
     base/QXmppLogger.h
     base/QXmppMamIq.h
     base/QXmppMessage.h
+    base/QXmppMessageReaction.h
     base/QXmppMixInfoItem.h
     base/QXmppMixInvitation.h
     base/QXmppMixIq.h
@@ -176,6 +177,7 @@ set(SOURCE_FILES
     base/QXmppLogger.cpp
     base/QXmppMamIq.cpp
     base/QXmppMessage.cpp
+    base/QXmppMessageReaction.cpp
     base/QXmppMixInvitation.cpp
     base/QXmppMixIq.cpp
     base/QXmppMixItems.cpp

@@ -13,6 +13,7 @@
 #include "QXmppGlobal_p.h"
 #include "QXmppMixInvitation.h"
 #ifdef BUILD_OMEMO
+#include "QXmppMessageReaction.h"
 #include "QXmppOmemoElement_p.h"
 #include "QXmppOmemoEnvelope_p.h"
 #endif
@@ -152,6 +153,9 @@ public:
 
     // XEP-0434: Trust Messages (TM)
     std::optional<QXmppTrustMessageElement> trustMessageElement;
+
+    // XEP-0444: Message Reactions
+    std::optional<QXmppMessageReaction> reaction;
 
     // XEP-0448: Encryption for stateless file sharing
     QVector<QXmppFileShare> sharedFiles;
@@ -1209,6 +1213,16 @@ void QXmppMessage::setTrustMessageElement(const std::optional<QXmppTrustMessageE
     d->trustMessageElement = trustMessageElement;
 }
 
+std::optional<QXmppMessageReaction> QXmppMessage::reaction() const
+{
+    return d->reaction;
+}
+
+void QXmppMessage::setReaction(const std::optional<QXmppMessageReaction> &reaction)
+{
+    d->reaction = reaction;
+}
+
 ///
 /// Returns the via \xep{0447, Stateless file sharing} shared files attached to this message.
 ///
@@ -1513,6 +1527,13 @@ bool QXmppMessage::parseExtension(const QDomElement &element, QXmpp::SceMode sce
             d->trustMessageElement = trustMessageElement;
             return true;
         }
+        // XEP-0444: Message Reactions
+        if (QXmppMessageReaction::isMessageReaction(element)) {
+            QXmppMessageReaction reaction;
+            reaction.parse(element);
+            d->reaction = reaction;
+            return true;
+        }
         // XEP-0448: Stateless file sharing
         if (checkElement(element, QStringLiteral("file-sharing"), ns_sfs)) {
             QXmppFileShare share;
@@ -1550,6 +1571,10 @@ void QXmppMessage::serializeExtensions(QXmlStreamWriter *writer, QXmpp::SceMode 
             writer->writeEndElement();
         }
 
+        if (d->reaction) {
+            // TODO: Add it, don't overwrite
+            d->hints {Hint::Store};
+        }
         // XEP-0334: Message Processing Hints
         for (quint8 i = 0; i < HINT_TYPES.size(); i++) {
             if (hasHint(Hint(1 << i))) {
@@ -1770,6 +1795,11 @@ void QXmppMessage::serializeExtensions(QXmlStreamWriter *writer, QXmpp::SceMode 
         // XEP-0434: Trust Messages (TM)
         if (d->trustMessageElement) {
             d->trustMessageElement->toXml(writer);
+        }
+
+        // XEP-0444: Message Reactions
+        if (d->reaction) {
+            d->reaction->toXml(writer);
         }
 
         // XEP-0448: Stateless file sharing
